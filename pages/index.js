@@ -11,6 +11,7 @@ const Home = () => {
       navigator.permissions.query({ name: "clipboard-read" }),
       navigator.permissions.query({ name: "clipboard-write" }),
     ]);
+    console.log(canRead, canWrite);
 
     setPerms({ read: canRead.state, write: canWrite.state });
 
@@ -38,6 +39,7 @@ const Home = () => {
     window.addEventListener("focus", checkperms);
     return () => window.removeEventListener("focus", checkperms);
   });
+  console.log("_perms", perms);
 
   return (
     <>
