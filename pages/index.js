@@ -15,7 +15,7 @@ const Home = () => {
 
     setPerms({ read: canRead.state, write: canWrite.state });
 
-    if (canRead.state === "granted") {
+    if (canRead.state !== "denied") {
       const originalText = await navigator.clipboard.readText();
       const alternatingCaps = [...originalText.trim().toLowerCase()]
         .map((char, idx) => {
