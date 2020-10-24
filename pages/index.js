@@ -1,50 +1,96 @@
 import React from "react";
 import Head from "next/head";
 
+const quoteExamples = [
+  "It has not been easy for me and, you know, I started off in brooklyn. My father gave me a small loan of a million dollars",
+  "...she does have a very nice figure. I've said if Ivanka weren't my daughter, perhaps I'd be dating her",
+  "It's freezing and snowing in New York! We need global warming",
+];
+
+const alternateCaps = (originalText) => {
+  const alternatingCaps = [...originalText.trim().toLowerCase()]
+    .map((char, idx) => {
+      if ((idx + 1) % 2 === 0) return char.toUpperCase();
+      return char;
+    })
+    .join("");
+
+  return alternatingCaps.charAt(0) !== '"' &&
+    alternatingCaps.charAt(alternatingCaps.length) !== '"'
+    ? `\"${alternatingCaps}\"`
+    : alternatingCaps;
+};
+
+const QUOTE_CONTAINERR = {
+  border: "1px solid",
+  borderRadius: 4,
+  padding: 24,
+  boxShadow: "inset 0px 0px 20px 2px white",
+};
+
+const LINK = {
+  textDecoration: "underline",
+  cursor: "pointer",
+};
+
 const Home = () => {
+  const [exampleQuote, setExampleQuote] = React.useState("");
   const [perms, setPerms] = React.useState({ read: "", write: "" });
   const [text, setText] = React.useState("");
   const [alternatedText, setAlternatedText] = React.useState("");
+  const [isCopied, setIsCopied] = React.useState(false);
 
   const checkperms = async () => {
     const [canRead, canWrite] = await Promise.all([
       navigator.permissions.query({ name: "clipboard-read" }),
       navigator.permissions.query({ name: "clipboard-write" }),
     ]);
-    console.log(canRead, canWrite);
 
     setPerms({ read: canRead.state, write: canWrite.state });
 
-    if (canRead.state !== "denied") {
+    if (canRead.state === "granted") {
       const originalText = await navigator.clipboard.readText();
-      const alternatingCaps = [...originalText.trim().toLowerCase()]
-        .map((char, idx) => {
-          if ((idx + 1) % 2 === 0) return char.toUpperCase();
-          return char;
-        })
-        .join("");
+
       setText(originalText);
-      setAlternatedText(
-        alternatingCaps.charAt(0) !== '"' &&
-          alternatingCaps.charAt(alternatingCaps.length) !== '"'
-          ? `\"${alternatingCaps}\"`
-          : alternatingCaps
-      );
+      setAlternatedText(alternateCaps(originalText));
     }
+  };
+
+  /**
+   * For the case that they have "prompt" permissions
+   */
+  const requestPerms = async () => {
+    const originalText = await navigator.clipboard.readText();
+    setText(originalText);
+    setAlternatedText(alternateCaps(originalText));
+  };
+
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(alternatedText);
+    setIsCopied(true);
   };
 
   React.useEffect(checkperms, []);
 
+  React.useState(() => {
+    const quoteIndex = Math.floor(Math.random() * quoteExamples.length);
+    setExampleQuote(quoteExamples[quoteIndex]);
+  }, []);
+
   React.useEffect(() => {
     window.addEventListener("focus", checkperms);
     return () => window.removeEventListener("focus", checkperms);
+  }, []);
+
+  React.useEffect(() => {
+    window.addEventListener("copy", checkperms);
+    return () => window.removeEventListener("copy", checkperms);
   });
-  console.log("_perms", perms);
 
   return (
     <>
       <Head>
-        <title>Create Next App</title>
+        <title>aLtErNaTiNg CaPs</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -66,25 +112,69 @@ const Home = () => {
             alignContent: "center",
             flexDirection: "column",
             padding: 100,
+            alignItems: "center",
+            textAlign: "center",
           }}
         >
+          <h1>
+            Alternating caps reads what you have copied and turns it into
+            "aLtErNaTiNg CaPs"
+          </h1>
+
           {(perms.read === "denied" || perms.write === "denied") && (
-            <div>
+            <p>
               Whoops, looks like we don't have permissions to read or write from
-              your clipboard
-            </div>
+              your clipboard. Open browser settings and allow this to use your
+              clipboard from your browser (your data is never saved outside of
+              your clipboard)
+            </p>
           )}
 
-          {perms.read !== "denied" && perms.write !== "write" && (
+          {(perms.read === "prompt" || perms.write === "prompt") && (
             <>
-              {text && <div style={{ alignSelf: "center" }}>{text}</div>}
-              <br />
-              <br />
+              <h2>
+                <a onClick={requestPerms} style={LINK}>
+                  Accept permissions
+                </a>{" "}
+                to be able to use examples like:
+              </h2>
+              <div></div>
+
+              <div style={QUOTE_CONTAINERR}>
+                <p>original: {exampleQuote}</p>
+                <p>modified: {alternateCaps(exampleQuote)}</p>
+              </div>
+            </>
+          )}
+
+          {perms.read === "granted" && perms.write === "granted" && (
+            <div style={QUOTE_CONTAINERR}>
+              {!text && (
+                <p>
+                  Copy some text and come back to this page to see your
+                  alternating text!
+                </p>
+              )}
+              {text && (
+                <>
+                  <p>original</p>
+                  <p>{text}</p>
+                </>
+              )}
               <br />
               {alternatedText && (
-                <div style={{ alignSelf: "center" }}>{alternatedText}</div>
+                <>
+                  <p>
+                    alternated (
+                    <a onClick={copyToClipboard} style={LINK}>
+                      {isCopied ? "copied!" : "copy to clipboard"}
+                    </a>
+                    )
+                  </p>
+                  <p>{alternatedText}</p>
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
       </main>
