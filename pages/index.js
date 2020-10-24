@@ -120,7 +120,6 @@ const Home = () => {
             Alternating caps reads what you have copied and turns it into
             "aLtErNaTiNg CaPs"
           </h1>
-          {JSON.stringify(perms)}
 
           {(perms.read === "denied" || perms.write === "denied") && (
             <p>
@@ -131,10 +130,7 @@ const Home = () => {
             </p>
           )}
 
-          {(perms.read === "" ||
-            perms.write === "" ||
-            perms.read === "prompt" ||
-            perms.write === "prompt") && (
+          {(perms.read === "prompt" || perms.write === "prompt") && (
             <>
               <h2>
                 <a onClick={requestPerms} style={LINK}>
@@ -181,6 +177,7 @@ const Home = () => {
             </div>
           )}
         </div>
+        <div style={{ opacity: 0 }}> {JSON.stringify(perms)}</div>
       </main>
 
       <style jsx global>{`
