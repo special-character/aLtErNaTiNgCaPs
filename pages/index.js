@@ -120,6 +120,7 @@ const Home = () => {
             Alternating caps reads what you have copied and turns it into
             "aLtErNaTiNg CaPs"
           </h1>
+          {JSON.stringify(perms)}
 
           {(perms.read === "denied" || perms.write === "denied") && (
             <p>
