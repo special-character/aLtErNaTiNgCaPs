@@ -131,7 +131,10 @@ const Home = () => {
             </p>
           )}
 
-          {(perms.read === "prompt" || perms.write === "prompt") && (
+          {(perms.read === "" ||
+            perms.write === "" ||
+            perms.read === "prompt" ||
+            perms.write === "prompt") && (
             <>
               <h2>
                 <a onClick={requestPerms} style={LINK}>
